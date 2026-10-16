@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>떡상 스탑워치</title>
+<style>
+  :root {
+    --bg: #f2f4f7;
+    --card: #ffffff;
+    --nav: #1b2a41;
+    --text: #1a1f29;
+    --muted: #6b7380;
+    --line: #dfe3ea;
+    --up: #0b8a3e;
+    --up-bg: #e6f5ec;
+    --down: #d62c2c;
+    --accent: #f08a00;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif; }
+  header { background: var(--nav); color: #fff; }
+  .nav { max-width: 920px; margin: 0 auto; padding: 0 16px; height: 48px; display: flex; align-items: center; gap: 24px; }
+  .brand { font-weight: 800; letter-spacing: .5px; }
+  .brand b { color: var(--accent); }
+  .nav span { font-size: 13px; color: #b9c4d6; }
+  .ticker { background: #121d2f; color: #cfd8e6; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  .ticker div { max-width: 920px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 22px; overflow: hidden; }
+  .ticker i { font-style: normal; color: #38d27a; }
+
+  main { max-width: 920px; margin: 0 auto; padding: 18px 16px 40px; }
+  .crumb { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  h1 { margin: 0; font-size: 24px; }
+  h1 small { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 8px; }
+
+  .quote { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin: 14px 0 6px; }
+  .price { font-size: 52px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .chg { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; padding-bottom: 4px; }
+  .chg.up { color: var(--up); } .chg.down { color: var(--down); }
+  .badge { align-self: center; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+           background: var(--up-bg); color: var(--up); }
+  .sub { font-size: 12px; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 1fr 280px; gap: 16px; margin-top: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  .chart-wrap { padding: 12px; }
+  canvas { width: 100%; height: 300px; display: block; }
+
+  .clock { padding: 16px; border-bottom: 1px solid var(--line); }
+  .clock .label { font-size: 12px; color: var(--muted); }
+  .clock .t { font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums;
+              font-family: "SF Mono", Menlo, Consolas, monospace; }
+  .clock .t small { font-size: .55em; color: var(--muted); }
+  .btns { display: flex; gap: 8px; padding: 12px 16px; }
+  button { flex: 1; padding: 10px 0; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer;
+           border: 1px solid var(--line); background: #fff; color: var(--text); font-family: inherit; }
+  button:hover:not(:disabled) { background: #f6f8fb; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--up); border-color: var(--up); color: #fff; }
+  button.stop { background: var(--down); border-color: var(--down); color: #fff; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+  .stats div { padding: 10px 16px; border-top: 1px solid var(--line); }
+  .stats div:nth-child(odd) { border-right: 1px solid var(--line); }
+  .stats span { display: block; color: var(--muted); font-size: 11px; margin-bottom: 2px; }
+  .stats b { font-variant-numeric: tabular-nums; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+  .tablecard { margin-top: 16px; overflow: hidden; }
+  .tablecard h2 { margin: 0; padding: 12px 16px; font-size: 15px; border-bottom: 1px solid var(--line); }
+  th, td { text-align: right; padding: 9px 16px; font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; background: #f8f9fb; }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr { border-top: 1px solid var(--line); }
+  td.up { color: var(--up); font-weight: 600; } td.down { color: var(--down); font-weight: 600; }
+  .empty { padding: 18px; text-align: center; color: var(--muted); font-size: 13px; }
+  .hint { margin-top: 14px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand">STOP<b>WATCH</b> MARKETS</div>
+    <span>시세</span><span>차트</span><span>포트폴리오</span>
+  </div>
+</header>
+<div class="ticker"><div>
+  <span>KOSPI <i>▲ 2,741.12</i></span><span>NASDAQ <i>▲ 18,402.55</i></span>
+  <span>BTC <i>▲ 98,120</i></span><span>USD/KRW <i>▲ 1,342.5</i></span><span>TIME <i>▲ ∞</i></span>
+</div></div>
+
+<main>
+  <div class="crumb">홈 › 시세 › 스탑워치 주식</div>
+  <h1>스탑워치 주식회사 <small>SWCH · 코스닥 · KRW</small></h1>
+
+  <div class="quote">
+    <div class="price" id="price">10,000</div>
+    <div class="chg up" id="chg">▲ +0 (+0.00%)</div>
+    <div class="badge">장중 · 실시간</div>
+  </div>
+  <div class="sub" id="sub">시간이 흐르면 주가가 오릅니다. 시작을 눌러 보세요.</div>
+
+  <div class="grid">
+    <div class="card chart-wrap"><canvas id="chart"></canvas></div>
+
+    <div class="card">
+      <div class="clock">
+        <div class="label">경과 시간</div>
+        <div class="t" id="display">00:00<small>.00</small></div>
+      </div>
+      <div class="btns">
+        <button id="lap" disabled>매수 기록</button>
+        <button id="toggle" class="primary">시작</button>
+        <button id="reset">초기화</button>
+      </div>
+      <div class="stats">
+        <div><span>시가</span><b id="sOpen">10,000</b></div>
+        <div><span>고가</span><b id="sHigh">10,000</b></div>
+        <div><span>저가</span><b id="sLow">10,000</b></div>
+        <div><span>거래량</span><b id="sVol">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card tablecard">
+    <h2>기록 (랩 · 매수 시점 주가)</h2>
+    <table>
+      <thead><tr><th>구간</th><th>경과 시간</th><th>매수가</th><th>수익률</th></tr></thead>
+      <tbody id="laps"></tbody>
+    </table>
+    <div class="empty" id="empty">아직 기록이 없습니다.</div>
+  </div>
+  <div class="hint">Space 시작/정지 · L 기록 · R 초기화 · 가상의 주가이며 실제 투자와 무관합니다.</div>
+</main>
+
+<script>
+  const BASE = 10000;
+  const $ = id => document.getElementById(id);
+  const canvas = $('chart'), ctx = canvas.getContext('2d');
+
+  let elapsed = 0, startedAt = 0, timer = null, lapCount = 0, lastLap = 0;
+  let price = BASE, high = BASE, low = BASE, volume = 0;
+  let points = [BASE];
+  let lapRows = [];
+
+  const pad = n => String(n).padStart(2, '0');
+  const won = n => Math.round(n).toLocaleString('ko-KR');
+  function fmt(ms) {
+    const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
+    return `${pad(m)}:${pad(s)}.${pad(cs)}`;
+  }
+
+  function stepPrice() {
+    // 위로 향하는 드리프트 + 변동성 (가끔 눌림목)
+    const drift = BASE * 0.00045;
+    const noise = (Math.random() - 0.42) * BASE * 0.0022;
+    price = Math.max(BASE * 0.9, price + drift + noise);
+    high = Math.max(high, price); low = Math.min(low, price);
+    volume += Math.floor(200 + Math.random() * 900);
+    points.push(price);
+    if (points.length > 720) points = points.filter((_, i) => i % 2 === 0);
+  }
+
+  function resize() {
+    const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function draw() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    const padL = 6, padR = 56, padT = 12, padB = 22;
+    const cw = w - padL - padR, ch = h - padT - padB;
+
+    const min = Math.min(...points), max = Math.max(...points);
+    const span = Math.max(max - min, BASE * 0.01);
+    const lo = min - span * 0.1, hi = max + span * 0.1;
+    const y = v => padT + ch - ((v - lo) / (hi - lo)) * ch;
+    const x = i => padL + (points.length === 1 ? 0 : (i / (points.length - 1)) * cw);
+
+    // grid + y labels
+    ctx.font = '11px -apple-system, Arial'; ctx.textAlign = 'left'; ctx.fillStyle = '#6b7380';
+    ctx.strokeStyle = '#eceff4'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const v = lo + ((hi - lo) * i) / 4, yy = y(v);
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
+      ctx.fillText(won(v), w - padR + 6, yy + 4);
+    }
+
+    // area
+    const up = price >= BASE, col = up ? '#0b8a3e' : '#d62c2c';
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + ch);
+    grad.addColorStop(0, up ? 'rgba(11,138,62,.28)' : 'rgba(214,44,44,.28)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    points.forEach((p, i) => i ? ctx.lineTo(x(i), y(p)) : ctx.moveTo(x(i), y(p)));
+    ctx.lineTo(x(points.length - 1), padT + ch); ctx.lineTo(x(0), padT + ch); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+
+    // line
+    ctx.beginPath();
+    points.forEach((p, i) => i ? ctx.lineTo(x(i), y(p)) : ctx.moveTo(x(i), y(p)));
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+    // 시가 기준선
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = '#9aa3b2'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, y(BASE)); ctx.lineTo(w - padR, y(BASE)); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 현재가 라벨
+    const ly = y(price), lx = x(points.length - 1);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(w - padR + 2, ly - 9, padR - 4, 18);
+    ctx.fillStyle = '#fff'; ctx.fillText(won(price), w - padR + 6, ly + 4);
+  }
+
+  function render() {
+    const [m, cs] = fmt(elapsed).split('.');
+    $('display').innerHTML = `${m}<small>.${cs}</small>`;
+    const diff = price - BASE, pct = (diff / BASE) * 100, up = diff >= 0;
+    $('price').textContent = won(price);
+    const c = $('chg');
+    c.className = 'chg ' + (up ? 'up' : 'down');
+    c.textContent = `${up ? '▲ +' : '▼ '}${won(diff)} (${up ? '+' : ''}${pct.toFixed(2)}%)`;
+    $('sHigh').textContent = won(high);
+    $('sLow').textContent = won(low);
+    $('sVol').textContent = volume.toLocaleString('ko-KR');
+    draw();
+  }
+
+  let lastStep = 0;
+  function tick() {
+    elapsed = performance.now() - startedAt;
+    if (elapsed - lastStep >= 100) { lastStep = elapsed; stepPrice(); }
+    render();
+  }
+
+  function toggle() {
+    if (timer) {
+      clearInterval(timer); timer = null;
+      $('toggle').textContent = '계속'; $('toggle').className = 'primary';
+      $('lap').disabled = true;
+      $('sub').textContent = '거래 일시 정지';
+    } else {
+      startedAt = performance.now() - elapsed;
+      timer = setInterval(tick, 20);
+      $('toggle').textContent = '정지'; $('toggle').className = 'stop';
+      $('lap').disabled = false;
+      $('sub').textContent = '실시간 시세 반영 중 · 가상의 주가';
+    }
+  }
+
+  function lap() {
+    lapCount++;
+    const pct = ((price - BASE) / BASE) * 100;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>#${lapCount} (+${fmt(elapsed - lastLap)})</td><td>${fmt(elapsed)}</td>` +
+      `<td>${won(price)}</td><td class="${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</td>`;
+    $('laps').prepend(tr);
+    $('empty').style.display = 'none';
+    lastLap = elapsed;
+  }
+
+  function reset() {
+    clearInterval(timer); timer = null;
+    elapsed = 0; lastStep = 0; lastLap = 0; lapCount = 0;
+    price = high = low = BASE; volume = 0; points = [BASE];
+    $('laps').innerHTML = ''; $('empty').style.display = '';
+    $('toggle').textContent = '시작'; $('toggle').className = 'primary';
+    $('lap').disabled = true;
+    $('sub').textContent = '시간이 흐르면 주가가 오릅니다. 시작을 눌러 보세요.';
+    render();
+  }
+
+  $('toggle').onclick = toggle; $('lap').onclick = lap; $('reset').onclick = reset;
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); toggle(); }
+    else if (e.key === 'l' && timer) lap();
+    else if (e.key === 'r') reset();
+  });
+  window.addEventListener('resize', resize);
+  resize(); render();
+</script>
+</body>
+</html>
