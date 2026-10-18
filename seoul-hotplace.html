@@ -9,7 +9,7 @@
 <style>
 /* 레이아웃: 고정 메뉴 + 연도 슬라이더로 움직이는 서울 지도 + 6개 장 */
 :root{--bg:#f4f6f3;--fg:#1b221e;--muted:#5d6862;--line:#d3dad5;--card:#fff;--river:#cfe3ea;
---s0:#7b5cc4;--s1:#2f8fd0;--s2:#d2452f;--s3:#8a948e;--accent:#0b7a5c;
+--s0:#7b5cc4;--s1:#2f8fd0;--s2:#d2452f;--s3:#8a948e;--accent:#0b7a5c;--hl:#fff35c;
 --display:"Gowun Batang",serif;--body:"IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif;--mono:"IBM Plex Mono",monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--fg:#e5ebe7;--muted:#98a59e;--line:#2c3531;--card:#1a211e;--river:#1d3a44;--s0:#a58bf0;--s1:#5db4f0;--s2:#ff7a63;--s3:#7d8983;--accent:#3fc79c;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#121715;--fg:#e5ebe7;--muted:#98a59e;--line:#2c3531;--card:#1a211e;--river:#1d3a44;--s0:#a58bf0;--s1:#5db4f0;--s2:#ff7a63;--s3:#7d8983;--accent:#3fc79c;color-scheme:dark}
@@ -35,7 +35,7 @@ table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:
 #info{font-size:.9rem;min-height:2.6em}
 .mx{display:grid;grid-template-columns:110px repeat(3,minmax(150px,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);min-width:600px}
 .mx>div{padding:10px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.86rem;display:grid;gap:4px;align-content:start}
-.mx .h{font-weight:600;color:var(--muted);text-align:center}.mx .go{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mx .h{font-weight:600;color:var(--muted);text-align:center}.mx .go{background:var(--hl);color:#1b221e}.mx .go .tag{color:#1b221e}
 .mx .hot{background:var(--s2);color:#fff;font-weight:600}.mx .late{background:color-mix(in srgb,var(--s3) 18%,transparent);color:var(--muted)}
 .mx .chip{background:var(--fg);color:var(--bg)}.mx .tag{font-size:.75rem;font-weight:600;color:var(--accent)}
 </style>
@@ -91,27 +91,46 @@ table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:
 <section class="pad" id="shop"><div class="in">
   <span class="num">05</span><h2>카페를 연다면</h2>
   <p class="lede">업종은 커피로 고정했습니다. ① 아직 비싸지기 전인 동네를 네 단계 필터로 먼저 거르고, ② 그중 카페 수요가 영상으로 확인된 곳을 고릅니다.</p>
-  <h3>어디에 창업할까: 주류보다 왼쪽·위쪽에 들어간다</h3>
-  <div class="wrap"><div class="mx" role="table" aria-label="창업 진입 구간">
-    <div class="h"></div><div class="h">안다</div><div class="h">간다</div><div class="h">산다</div>
-    <div class="h">초기 선구자</div>
-    <div class="go"><span class="tag">진입 구간</span>유튜버 1~2명만 다룸</div>
-    <div class="go"><span class="tag">진입 구간</span>동네 사람·소수만 방문</div>
-    <div>매출 거의 없음</div>
-    <div class="h">초기 추종자</div>
-    <div class="go"><span class="tag">진입 구간 · 지금 여기</span><span><span class="chip">부암동</span><span class="chip">남영·효창</span><span class="chip">상수·서교</span><span class="chip">성북동</span></span></div>
-    <div class="go"><span class="tag">진입 구간</span>방문이 늘기 시작(간다 원자료 미확보)</div>
-    <div>매출이 막 움직임</div>
-    <div class="h">주류 방문자</div>
-    <div class="go"><span class="tag">진입 마지노선</span>유튜버 11명 돌파</div>
-    <div class="hot">핫 플레이스<br><span style="font-weight:400;font-size:.8rem">여기 도착하기 전에 문을 열어야 함</span></div>
-    <div class="late">임대료가 오르기 시작<br><span class="chip" style="background:var(--s3)">익선동</span><span class="chip" style="background:var(--s3)">충무로·필동</span><span class="chip" style="background:var(--s3)">노량진</span></div>
-    <div class="h">후기 방문자</div>
-    <div class="late">신규 유튜버 감소</div>
-    <div class="late">방문 정체</div>
-    <div class="late">임대료 정점, 가게가 밀려남<br><span class="chip" style="background:var(--s3)">신당</span><span class="chip" style="background:var(--s3)">용리단길</span><span class="chip" style="background:var(--s3)">연희</span></div>
-  </div></div>
-  <p class="legend" style="font-size:.85rem;color:var(--muted)">초록 = 창업 진입 구간(핫플 칸의 왼쪽·위쪽). 아래 필터는 이 구간에 있는 동네를 고르는 과정입니다. 동네 칩의 위치는 유튜브(안다) 기준이며, 간다·산다 칸은 원자료로 확인하지 못했습니다.</p>
+  <h3>어디에 창업할까: 주류가 오기 전, 노란 칸에 들어간다</h3>
+  <div class="wrap"><svg viewBox="0 0 900 530" style="min-width:600px" role="img" aria-label="창업 진입 구간: 초기 선구자·초기 추종자의 안다 칸">
+    <defs>
+      <marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--fg)"/></marker>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g font-family="var(--body)">
+      <text x="268" y="36" text-anchor="middle" font-family="var(--display)" font-size="22" fill="var(--fg)">안다</text>
+      <text x="268" y="56" text-anchor="middle" font-size="12" fill="var(--muted)">유튜버 콘텐츠</text>
+      <text x="518" y="36" text-anchor="middle" font-family="var(--display)" font-size="22" fill="var(--fg)">간다</text>
+      <text x="518" y="56" text-anchor="middle" font-size="12" fill="var(--muted)">유동인구 · 승하차</text>
+      <text x="768" y="36" text-anchor="middle" font-family="var(--display)" font-size="22" fill="var(--fg)">산다</text>
+      <text x="768" y="56" text-anchor="middle" font-size="12" fill="var(--muted)">매출 → 임대료</text>
+      <text x="134" y="127" text-anchor="end" font-size="15" font-weight="600" fill="var(--s0)">초기 선구자</text>
+      <text x="134" y="239" text-anchor="end" font-size="15" font-weight="600" fill="var(--s1)">초기 추종자</text>
+      <text x="134" y="351" text-anchor="end" font-size="15" font-weight="600" fill="var(--s2)">주류 방문자</text>
+      <text x="134" y="463" text-anchor="end" font-size="15" font-weight="600" fill="var(--s3)">후기 방문자</text>
+      <rect x="150" y="70" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="400" y="70" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="650" y="70" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="150" y="182" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="400" y="182" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="650" y="182" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="150" y="294" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="400" y="294" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="650" y="294" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="150" y="406" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="400" y="406" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/><rect x="650" y="406" width="236" height="104" rx="14" fill="var(--card)" stroke="var(--line)"/>
+      <rect x="146" y="66" width="244" height="224" rx="18" fill="#ffe94d" opacity=".35" filter="url(#glow)"/>
+      <rect x="150" y="70" width="236" height="104" rx="14" fill="#ffe94d" stroke="#e0c200" stroke-width="1.5"/>
+      <rect x="150" y="182" width="236" height="104" rx="14" fill="#ffe94d" stroke="#e0c200" stroke-width="1.5"/>
+      <text x="268" y="112" text-anchor="middle" font-family="var(--display)" font-size="20" fill="#1b221e">여기부터</text>
+      <text x="268" y="136" text-anchor="middle" font-size="12.5" fill="#3d3a1a">유튜버 1~2명만 아는 동네</text>
+      <text x="166" y="206" font-size="12" font-weight="700" fill="#3d3a1a" letter-spacing=".04em">지금 여기 · 카페 후보</text>
+      <rect x="166" y="218" width="66" height="26" rx="13" fill="#1b221e"/><text x="199.0" y="235.5" text-anchor="middle" font-size="13" font-weight="600" fill="#ffe94d">부암동</text><rect x="240" y="218" width="86" height="26" rx="13" fill="#1b221e"/><text x="283.0" y="235.5" text-anchor="middle" font-size="13" font-weight="600" fill="#ffe94d">남영·효창</text>
+      <rect x="166" y="250" width="86" height="26" rx="13" fill="#1b221e"/><text x="209.0" y="267.5" text-anchor="middle" font-size="13" font-weight="600" fill="#ffe94d">상수·서교</text><rect x="260" y="250" width="66" height="26" rx="13" fill="#1b221e"/><text x="293.0" y="267.5" text-anchor="middle" font-size="13" font-weight="600" fill="#ffe94d">성북동</text>
+      <rect x="400" y="294" width="236" height="104" rx="14" fill="var(--s2)"/>
+      <text x="518" y="338" text-anchor="middle" font-family="var(--display)" font-size="21" fill="#fff">핫 플레이스</text>
+      <text x="518" y="362" text-anchor="middle" font-size="12.5" fill="#fff" opacity=".9">여기 오기 전에 문을 연다</text>
+      <rect x="650" y="406" width="236" height="104" rx="14" fill="var(--s3)" opacity=".22"/>
+      <text x="768" y="436" text-anchor="middle" font-family="var(--display)" font-size="19" fill="var(--fg)">여기까지</text>
+      <text x="768" y="456" text-anchor="middle" font-size="12" fill="var(--muted)">임대료 정점, 가게가 밀려남</text>
+      <rect x="672" y="468" width="56" height="26" rx="13" fill="var(--s3)"/><text x="700.0" y="485.5" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">신당</text><rect x="734" y="468" width="80" height="26" rx="13" fill="var(--s3)"/><text x="774.0" y="485.5" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">용리단길</text><rect x="820" y="468" width="50" height="26" rx="13" fill="var(--s3)"/><text x="845.0" y="485.5" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">연희</text>
+      <path d="M386 160 C 470 190, 470 250, 500 292" fill="none" stroke="var(--fg)" stroke-width="2.2" stroke-dasharray="6 6" marker-end="url(#arw)"/>
+      <path d="M636 380 C 690 395, 720 395, 748 404" fill="none" stroke="var(--fg)" stroke-width="2.2" stroke-dasharray="6 6" marker-end="url(#arw)"/>
+      <text x="498" y="248" font-size="12" fill="var(--muted)">주류가 몰려옴</text>
+      <text x="660" y="372" font-size="12" fill="var(--muted)">임대료가 따라옴</text>
+    </g>
+  </svg></div>
+  <p class="legend" style="font-size:.85rem;color:var(--muted)">노란 칸 = 창업 진입 구간(초기 선구자·초기 추종자가 '아는' 단계). 아래 필터는 이 구간에 있는 동네를 고르는 과정입니다. 동네 칩의 위치는 유튜브(안다) 기준입니다.</p>
   <h3>① 이런 동네가 괜찮다: 61곳 → 10곳</h3>
   <div class="wrap"><table>
     <tr><th>필터</th><th>기준</th><th>남은 동네</th></tr>
