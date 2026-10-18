@@ -33,6 +33,11 @@ table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start}
 .card p,.card li{font-size:.9rem}.card ul{margin:0;padding-left:1.1em}.mono{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
 #info{font-size:.9rem;min-height:2.6em}
+.mx{display:grid;grid-template-columns:110px repeat(3,minmax(150px,1fr));border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);min-width:600px}
+.mx>div{padding:10px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.86rem;display:grid;gap:4px;align-content:start}
+.mx .h{font-weight:600;color:var(--muted);text-align:center}.mx .go{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mx .hot{background:var(--s2);color:#fff;font-weight:600}.mx .late{background:color-mix(in srgb,var(--s3) 18%,transparent);color:var(--muted)}
+.mx .chip{background:var(--fg);color:var(--bg)}.mx .tag{font-size:.75rem;font-weight:600;color:var(--accent)}
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
 </head>
@@ -86,6 +91,27 @@ table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:
 <section class="pad" id="shop"><div class="in">
   <span class="num">05</span><h2>카페를 연다면</h2>
   <p class="lede">업종은 커피로 고정했습니다. ① 아직 비싸지기 전인 동네를 네 단계 필터로 먼저 거르고, ② 그중 카페 수요가 영상으로 확인된 곳을 고릅니다.</p>
+  <h3>어디에 창업할까: 주류보다 왼쪽·위쪽에 들어간다</h3>
+  <div class="wrap"><div class="mx" role="table" aria-label="창업 진입 구간">
+    <div class="h"></div><div class="h">안다</div><div class="h">간다</div><div class="h">산다</div>
+    <div class="h">초기 선구자</div>
+    <div class="go"><span class="tag">진입 구간</span>유튜버 1~2명만 다룸</div>
+    <div class="go"><span class="tag">진입 구간</span>동네 사람·소수만 방문</div>
+    <div>매출 거의 없음</div>
+    <div class="h">초기 추종자</div>
+    <div class="go"><span class="tag">진입 구간 · 지금 여기</span><span><span class="chip">부암동</span><span class="chip">남영·효창</span><span class="chip">상수·서교</span><span class="chip">성북동</span></span></div>
+    <div class="go"><span class="tag">진입 구간</span>방문이 늘기 시작(간다 원자료 미확보)</div>
+    <div>매출이 막 움직임</div>
+    <div class="h">주류 방문자</div>
+    <div class="go"><span class="tag">진입 마지노선</span>유튜버 11명 돌파</div>
+    <div class="hot">핫 플레이스<br><span style="font-weight:400;font-size:.8rem">여기 도착하기 전에 문을 열어야 함</span></div>
+    <div class="late">임대료가 오르기 시작<br><span class="chip" style="background:var(--s3)">익선동</span><span class="chip" style="background:var(--s3)">충무로·필동</span><span class="chip" style="background:var(--s3)">노량진</span></div>
+    <div class="h">후기 방문자</div>
+    <div class="late">신규 유튜버 감소</div>
+    <div class="late">방문 정체</div>
+    <div class="late">임대료 정점, 가게가 밀려남<br><span class="chip" style="background:var(--s3)">신당</span><span class="chip" style="background:var(--s3)">용리단길</span><span class="chip" style="background:var(--s3)">연희</span></div>
+  </div></div>
+  <p class="legend" style="font-size:.85rem;color:var(--muted)">초록 = 창업 진입 구간(핫플 칸의 왼쪽·위쪽). 아래 필터는 이 구간에 있는 동네를 고르는 과정입니다. 동네 칩의 위치는 유튜브(안다) 기준이며, 간다·산다 칸은 원자료로 확인하지 못했습니다.</p>
   <h3>① 이런 동네가 괜찮다: 61곳 → 10곳</h3>
   <div class="wrap"><table>
     <tr><th>필터</th><th>기준</th><th>남은 동네</th></tr>
