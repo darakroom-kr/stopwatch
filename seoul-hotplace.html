@@ -1,0 +1,368 @@
+<title>서울 핫플레이스 지도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 상단 고정 메뉴 + 지도 히어로(서울 전체 요약) + 4개 장. 지도는 위경도를 그대로 투영한 개략도 */
+:root {
+  --bg: #f4f6f3; --fg: #1b221e; --muted: #5d6862; --line: #d3dad5; --card: #ffffff;
+  --river: #cfe3ea; --accent: #0b7a5c; --hot: #d2452f; --past: #8a948e;
+  --display: "Gowun Batang", "Noto Serif KR", serif;
+  --body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --fg: #e5ebe7; --muted: #98a59e; --line: #2c3531; --card: #1a211e;
+  --river: #1d3a44; --accent: #3fc79c; --hot: #ff7a63; --past: #7d8983; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121715; --fg: #e5ebe7; --muted: #98a59e; --line: #2c3531; --card: #1a211e;
+  --river: #1d3a44; --accent: #3fc79c; --hot: #ff7a63; --past: #7d8983; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.7; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.in { max-width: 1080px; margin: 0 auto; }
+h1, h2 { font-family: var(--display); text-wrap: balance; line-height: 1.3; margin: 0; }
+h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: 1.05rem; margin: 0; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+nav .in { display: flex; gap: 20px; align-items: center; padding-block: 12px; overflow-x: auto; white-space: nowrap; }
+nav b { font-family: var(--display); font-size: 1.05rem; margin-right: auto; }
+nav a { color: var(--muted); text-decoration: none; font-size: .9rem; }
+nav a:hover { color: var(--fg); }
+
+.hero { padding-block: 36px 24px; }
+.hero .in { display: grid; gap: 18px; }
+.eyebrow { font-family: var(--mono); font-size: .78rem; letter-spacing: .1em; color: var(--accent); }
+.lede { color: var(--muted); max-width: 62ch; }
+.mapbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; }
+.mapwrap { overflow-x: auto; }
+#map { display: block; width: 100%; min-width: 640px; height: auto; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters button { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: transparent; color: var(--muted);
+  padding: 4px 12px; border-radius: 999px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: .82rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.info { min-height: 3.4em; font-size: .92rem; border-top: 1px solid var(--line); padding-top: 10px; }
+.info b { font-family: var(--display); font-size: 1.05rem; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.stat { border-top: 2px solid var(--fg); padding-top: 8px; }
+.stat strong { font-family: var(--display); font-size: 1.6rem; display: block; line-height: 1.2; }
+.stat span { font-size: .85rem; color: var(--muted); }
+
+section.ch { padding-block: 56px; border-top: 1px solid var(--line); }
+section.ch .in { display: grid; gap: 22px; }
+.chhead { display: grid; gap: 6px; }
+.num { font-family: var(--mono); color: var(--accent); font-size: .85rem; letter-spacing: .08em; }
+.two { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+.two > * { min-width: 0; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+.note { border-left: 3px solid var(--hot); padding: 10px 14px; background: var(--card); font-size: .9rem; }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; font-variant-numeric: tabular-nums; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .8rem; letter-spacing: .04em; }
+
+/* 단계 표 */
+.stage { position: relative; display: grid; grid-template-columns: 92px repeat(3, 1fr); background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; min-width: 420px; }
+.stage div { padding: 14px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; font-size: .88rem; position: relative; z-index: 1; }
+.stage .h { font-weight: 600; color: var(--muted); }
+.stage .sig { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.stage .start { color: var(--accent); font-weight: 600; }
+.stage .hotc { background: var(--hot); color: #fff; font-weight: 600; }
+.stage .end { color: var(--muted); font-weight: 600; }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+.axes { display: grid; gap: 10px; }
+.axis { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.axis b { font-family: var(--display); font-size: 1.1rem; }
+.axis p { font-size: .9rem; color: var(--muted); }
+
+/* 타임라인 */
+#timeline { width: 100%; min-width: 640px; height: auto; display: block; }
+.mech { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .mech { grid-template-columns: 1fr; } }
+.mech > div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 8px; }
+.tag { display: inline-block; font-size: .74rem; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; font-weight: 600; }
+.tag.ax { color: var(--accent); } .tag.pt { color: var(--hot); }
+
+/* 후보 */
+.cands { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.cand { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.cand .from { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+.cand p { font-size: .92rem; }
+
+/* 이유: 순환 */
+#cycle { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
+.reasons { display: grid; gap: 14px; }
+.reasons div { display: grid; gap: 4px; }
+.reasons strong { font-family: var(--display); font-size: 1.08rem; }
+.reasons p { font-size: .93rem; color: var(--muted); }
+footer { padding-block: 32px 56px; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none !important; } }
+@keyframes pulse { 0% { r: 9; opacity: .6 } 100% { r: 22; opacity: 0 } }
+.pulse { animation: pulse 1.8s ease-out infinite; }
+</style>
+
+<nav class="pad"><div class="in">
+  <b>서울 핫플레이스 지도</b>
+  <a href="#what">1 핫플이란</a><a href="#history">2 역사</a><a href="#next">3 다음 핫플</a><a href="#why">4 이유</a>
+</div></nav>
+
+<header class="hero pad"><div class="in">
+  <span class="eyebrow">SEOUL HOT PLACE · 1차본 2026.10.18</span>
+  <h1>핫플은 옆으로 번지거나, 한 점에서 터진다</h1>
+  <p class="lede">2014년 이후 뜬 9개 동네를 지도에 올렸습니다. 화살표는 임대료에 밀려 옆 동네로 옮겨간 흐름(축 이동), 다이아몬드는 동네 자체의 계기로 뜬 곳(점 발생)입니다. 초록 고리가 다음 후보입니다.</p>
+  <div class="mapbox">
+    <div class="filters" role="group" aria-label="지도 보기 범위">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">전체</button>
+      <button type="button" id="f-past" data-f="past" aria-pressed="false">2014~2017년에 뜬 곳</button>
+      <button type="button" id="f-recent" data-f="recent" aria-pressed="false">2022년에 뜬 곳</button>
+      <button type="button" id="f-next" data-f="next" aria-pressed="false">다음 후보</button>
+    </div>
+    <div class="mapwrap"><svg id="map" viewBox="0 0 1000 470" role="img" aria-label="서울 핫플 개략 지도"></svg></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--past)"></i>2014~2017년에 뜬 곳</span>
+      <span><i class="dot" style="background:var(--hot)"></i>2022년에 뜬 곳</span>
+      <span><i class="dot" style="background:var(--accent)"></i>다음 후보</span>
+      <span>→ 축 이동 · ◆ 점 발생 · 점선 원 = 광역권</span>
+    </div>
+    <div class="info" id="info" aria-live="polite">동네 점을 누르면 근거가 나옵니다.</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><strong>9곳</strong><span>근거를 확인한 과거 핫플</span></div>
+    <div class="stat"><strong>5 : 4</strong><span>축 이동 : 점 발생 (연남은 둘 다)</span></div>
+    <div class="stat"><strong>약 5배</strong><span>경리단길 1층 임대료, 2015 → 2018</span></div>
+    <div class="stat"><strong>3곳</strong><span>다음 후보 권역</span></div>
+  </div>
+  <p class="note">이 1차본은 공개 보도·연구 자료로 만들었습니다. 유튜브(안다) 수집과 서울시 유동인구·매출 데이터(간다·산다) 분석은 반영 전이며, 반영되면 후보가 바뀔 수 있습니다. 지도는 위치 관계를 보여주는 개략도입니다.</p>
+</div></header>
+
+<section class="ch pad" id="what"><div class="in">
+  <div class="chhead"><span class="num">01</span><h2>What is Hot place</h2>
+    <p class="lede">핫플레이스는 <strong>주류 방문자가 실제로 가기 시작한 동네</strong>입니다. 우리는 그 순간보다 먼저, 표 위쪽 칸에서 나오는 징후를 잡으려 합니다.</p></div>
+  <div class="two">
+    <div class="wrap">
+      <div class="stage" role="table" aria-label="핫플 단계 표">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M33 30 L56 70 L84 90" fill="none" stroke="var(--fg)" stroke-width=".6" stroke-dasharray="2 1.5" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <div class="h"></div><div class="h">안다</div><div class="h">간다</div><div class="h">산다</div>
+        <div class="h">초기 선구자</div><div class="start sig">여기부터</div><div class="sig"></div><div></div>
+        <div class="h">초기 추종자</div><div class="sig"></div><div class="sig"></div><div></div>
+        <div class="h">주류 방문자</div><div></div><div class="hotc">핫 플레이스</div><div></div>
+        <div class="h">후기 방문자</div><div></div><div></div><div class="end">여기까지</div>
+      </div>
+      <p class="legend" style="margin-top:8px">초록 칸 = 핫플이 되기 전에 잡아야 할 징후 구간 · 점선 = 동네가 움직이는 경로</p>
+    </div>
+    <div class="axes">
+      <div class="axis"><b>안다</b><p>구독자 10만 명 이상 유튜버 콘텐츠 전부. 브이로그·투어·먹방·정보 모두 시청자 입장에선 동네를 알게 되는 것</p></div>
+      <div class="axis"><b>간다</b><p>몸이 실제로 간 기록. 유동인구, 버스 정류장·지하철역 승하차 인원</p></div>
+      <div class="axis"><b>산다</b><p>돈이 쓰인 기록. 지역 매출액이 먼저 움직이고, 동네 임대료가 뒤따름</p></div>
+      <div class="axis"><b>누가</b><p>동네를 다룬 순서로 초기 선구자 2.5% · 초기 추종자 13.5% · 주류 방문자 68% · 후기 방문자 16%</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="ch pad" id="history"><div class="in">
+  <div class="chhead"><span class="num">02</span><h2>핫플의 역사</h2>
+    <p class="lede">동네가 뜨는 방식은 두 가지였습니다. 대부분은 옆 동네의 임대료에서 시작됐습니다.</p></div>
+  <div class="mech">
+    <div><span class="tag ax">축 이동</span><h3>옆 동네로 번진다</h3><p>원래 상권의 임대료가 오르면 젊은 가게들이 걸어서 이어지는 옆 동네로 옮깁니다. 홍대 임대료를 피해 연남·합정·상수·망원으로 옮겨간 흐름이 대표적입니다(<a href="https://www.hankookilbo.com/news/article/201905031556025832">한국일보</a>).</p></div>
+    <div><span class="tag pt">점 발생</span><h3>한 점에서 터진다</h3><p>주변 상권과 상관없이 동네 자체의 계기로 뜹니다. 빈 공장과 싼 임대료(성수), 재개발 구역 해제(익선동), 공원 개장(연남 경의선숲길), 대통령실 이전(용리단길).</p></div>
+  </div>
+  <div class="wrap"><svg id="timeline" viewBox="0 0 1000 250" role="img" aria-label="연도별 핫플 타임라인"></svg></div>
+  <div class="wrap"><table>
+    <tr><th>동네</th><th>뜬 해</th><th>방식</th><th>산다 근거 (임대료)</th></tr>
+    <tr><td>경리단길</td><td>2014</td><td><span class="tag ax">축 이동</span> 이태원 →</td><td>1층 평균 임대료 3.3㎡당 4.96만원(2015) → 23.58만원(2018 2분기) <a href="https://www.etoday.co.kr/news/view/1806678">이투데이</a></td></tr>
+    <tr><td>상수동</td><td>2014</td><td><span class="tag ax">축 이동</span> 홍대 →</td><td>2015년 4분기 임대료 상승이 두드러진 상권 <a href="https://www.arunews.com/news/articleView.html?idxno=3815">한국주택경제</a></td></tr>
+    <tr><td>연남동</td><td>2016</td><td><span class="tag ax">축 이동</span> + <span class="tag pt">점</span> 경의선숲길</td><td>숲길 개장 전후 카페·음식점 매출과 주택가격 급변 <a href="https://kiss.kstudy.com/Detail/Ar?key=3810868">한국사진지리학회</a></td></tr>
+    <tr><td>성수동</td><td>2016</td><td><span class="tag pt">점 발생</span> 빈 공장</td><td>2017년 상반기 젠트리피케이션 지역 임대료 상승률 1위 4.18% <a href="https://www.hankyung.com/article/201710319554Y">한국경제</a></td></tr>
+    <tr><td>망원동</td><td>2017</td><td><span class="tag ax">축 이동</span> 홍대·상수 →</td><td>2019년 쇠퇴 보도 <a href="https://www.hankookilbo.com/news/article/201905031556025832">한국일보</a></td></tr>
+    <tr><td>익선동</td><td>2017</td><td><span class="tag pt">점 발생</span> 재개발 해제</td><td>1층 59㎡ 점포 월 300만원 → 500만원(2018) <a href="https://www.ajunews.com/view/20180904144238008">아주경제</a></td></tr>
+    <tr><td>송리단길</td><td>2017</td><td><span class="tag pt">점 발생</span> 석촌호수</td><td>3.3㎡당 월 10만원(2017) → 15만원(2020), 매출은 감소 <a href="https://www.etoday.co.kr/news/view/1840910">이투데이</a></td></tr>
+    <tr><td>용리단길</td><td>2022</td><td><span class="tag pt">점 발생</span> 대통령실 이전</td><td>3년간 임대료·권리금 2~3배 <a href="https://v.daum.net/v/20251126181830651">다음뉴스</a></td></tr>
+    <tr><td>연무장길</td><td>2022</td><td><span class="tag ax">축 이동</span> 성수 카페거리 →</td><td>뚝섬 상권 2024년 3분기 임대가격지수 전 분기 대비 +4.29% <a href="https://www.sidae.com/article/2024112716232197162">시대일보</a></td></tr>
+  </table></div>
+  <p class="legend">'뜬 해'는 보도·연구에서 상권 급성장이 처음 확인된 시기로 잡은 1차 추정입니다. 유튜브 '안다' 데이터로 주류 방문자 유입 시점을 다시 계산할 예정입니다.</p>
+</div></section>
+
+<section class="ch pad" id="next"><div class="in">
+  <div class="chhead"><span class="num">03</span><h2>앞으로 어디가 뜰까</h2>
+    <p class="lede">임대료가 정점에 닿은 동네 바로 옆에서 다음 핫플이 나왔습니다. 그 조건에 맞는 세 권역입니다.</p></div>
+  <div class="cands">
+    <div class="cand"><span class="tag ax">축 이동</span><span class="from">성수 · 한남 →</span><h3>신당 · 약수 · 금호</h3>
+      <p>성수·한남 옆 '위성동네'로 꼽힘. 신당동 일대 유동인구 일평균 약 8만 명(2022) <a href="https://www.careet.net/1057">캐릿</a>. 철공소·봉제·떡볶이거리·디자인 스튜디오가 섞인 동네 <a href="https://ditoday.com/성수-다음의-핫플은-어디일까/">디아이투데이</a></p></div>
+    <div class="cand"><span class="tag ax">축 이동</span><span class="from">연무장길 →</span><h3>연무장길 바깥 성수 골목</h3>
+      <p>팝업 쏠림으로 임대료가 오르며 뚝섬 소규모 상가 공실률 3.94% → 5.94% <a href="https://biz.heraldcorp.com/article/3850075">헤럴드경제</a>. 밀려난 가게들이 갈 다음 골목이 생기는 구간. 구체 골목은 미확인</p></div>
+    <div class="cand"><span class="tag ax">축 이동</span><span class="from">용리단길 →</span><h3>삼각지 · 남영</h3>
+      <p>용리단길 임대료가 3년간 2~3배 <a href="https://v.daum.net/v/20251126181830651">다음뉴스</a>. 경리단길 → 한남과 같은 밀어내기 패턴이 반복될 자리. 구체 골목은 미확인</p></div>
+  </div>
+  <p class="note">후보는 아직 보도 기반입니다. 과거 동네에 늘 일찍 들어왔던 유튜버(초기 선구자·초기 추종자)가 최근 어디를 다루는지 수집되면 데이터로 다시 고릅니다.</p>
+</div></section>
+
+<section class="ch pad" id="why"><div class="in">
+  <div class="chhead"><span class="num">04</span><h2>이유</h2></div>
+  <div class="two">
+    <svg id="cycle" viewBox="0 0 460 400" role="img" aria-label="핫플 순환 구조">
+      <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--muted)"/></marker></defs>
+      <circle cx="230" cy="200" r="130" fill="none" stroke="var(--line)" stroke-width="2"/>
+      <g font-family="var(--body)" font-size="15" text-anchor="middle" fill="var(--fg)">
+        <g><rect x="160" y="44" width="140" height="44" rx="22" fill="var(--card)" stroke="var(--accent)"/><text x="230" y="72">싸고 독특한 골목</text></g>
+        <g><rect x="300" y="178" width="150" height="44" rx="22" fill="var(--card)" stroke="var(--accent)"/><text x="375" y="206">선구자가 알림</text></g>
+        <g><rect x="160" y="312" width="140" height="44" rx="22" fill="var(--hot)"/><text x="230" y="340" fill="#fff" font-weight="600">주류 방문 = 핫플</text></g>
+        <g><rect x="10" y="178" width="150" height="44" rx="22" fill="var(--card)" stroke="var(--muted)"/><text x="85" y="206">임대료 상승</text></g>
+      </g>
+      <g fill="none" stroke="var(--muted)" stroke-width="1.6" marker-end="url(#ah2)">
+        <path d="M305 80 Q350 110 365 172"/><path d="M365 228 Q350 290 305 322"/>
+        <path d="M155 322 Q110 290 95 228"/><path d="M95 172 Q110 110 155 80"/>
+      </g>
+      <text x="230" y="196" text-anchor="middle" font-family="var(--display)" font-size="18" fill="var(--fg)">밀려난 가게가</text>
+      <text x="230" y="220" text-anchor="middle" font-family="var(--display)" font-size="18" fill="var(--fg)">옆 골목을 다시 연다</text>
+    </svg>
+    <div class="reasons">
+      <div><strong>임대료가 다음 핫플을 만든다</strong><p>한 동네가 '산다' 끝에 닿아 임대료가 오르면, 그 동네를 만든 가게들이 옆으로 밀려납니다. 경리단길(약 5배), 용리단길(2~3배), 연무장길이 이 단계에 있습니다.</p></div>
+      <div><strong>밀려난 곳은 싸고 가까운 곳이다</strong><p>연남·망원(홍대 옆), 한남(이태원 옆)처럼 걸어서 이어지는 저렴한 주택가·공장 골목이 다음 칸입니다. 신당·약수·금호가 성수·한남 옆에서 같은 조건을 갖췄습니다.</p></div>
+      <div><strong>점은 계기가 만든다</strong><p>공원 개장, 재개발 해제, 공공기관 이전처럼 날짜가 정해진 사건은 미리 알 수 있습니다. 앞으로의 공원·철도 지하화·이전 계획이 다음 '점'의 후보입니다(계획 목록은 미확인).</p></div>
+    </div>
+  </div>
+</div></section>
+
+<footer class="pad"><div class="in">출처는 각 수치 옆 링크. 지도 위치는 동네 중심 좌표를 단순 투영한 개략도이며 한강 선은 근사치입니다.</div></footer>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+// 위경도 → 지도 좌표 (위도 37.55도에서 경도 1도 ≈ 위도 0.793도)
+const LON0 = 126.885, LAT0 = 37.592, S = 5300;
+const px = (lat, lon) => [(lon - LON0) * 0.793 * S, (LAT0 - lat) * S];
+
+const PLACES = [
+  { id: '홍대', lat: 37.5563, lon: 126.9236, kind: 'origin' },
+  { id: '이태원', lat: 37.5345, lon: 126.9945, kind: 'origin' },
+  { id: '경리단길', lat: 37.5395, lon: 126.9885, kind: 'past', year: 2014, how: 'ax', note: '1층 평균 임대료 3.3㎡당 4.96만원(2015) → 23.58만원(2018)', src: 'https://www.etoday.co.kr/news/view/1806678', dx: -70, dy: 4 },
+  { id: '상수동', lat: 37.5478, lon: 126.9225, kind: 'past', year: 2014, how: 'ax', note: '2015년 4분기 임대료 상승이 두드러진 상권', src: 'https://www.arunews.com/news/articleView.html?idxno=3815', dx: 10, dy: 18 },
+  { id: '연남동', lat: 37.5640, lon: 126.9255, kind: 'past', year: 2016, how: 'ax', note: '경의선숲길 개장 전후 매출·주택가격 급변', src: 'https://kiss.kstudy.com/Detail/Ar?key=3810868', dx: 10, dy: -8 },
+  { id: '망원동', lat: 37.5560, lon: 126.9050, kind: 'past', year: 2017, how: 'ax', note: '홍대·합정·상수 임대료를 피해 이주', src: 'https://www.hankookilbo.com/news/article/201905031556025832', dx: -58, dy: -8 },
+  { id: '성수동', lat: 37.5446, lon: 127.0557, kind: 'past', year: 2016, how: 'pt', note: '2017년 상반기 임대료 상승률 1위 4.18%', src: 'https://www.hankyung.com/article/201710319554Y', dx: 12, dy: -8 },
+  { id: '익선동', lat: 37.5743, lon: 126.9893, kind: 'past', year: 2017, how: 'pt', note: '1층 59㎡ 점포 월 300만원 → 500만원(2018)', src: 'https://www.ajunews.com/view/20180904144238008', dx: 12, dy: -6 },
+  { id: '송리단길', lat: 37.5095, lon: 127.1045, kind: 'past', year: 2017, how: 'pt', note: '3.3㎡당 월 10만원(2017) → 15만원(2020)', src: 'https://www.etoday.co.kr/news/view/1840910', dx: -74, dy: 4 },
+  { id: '용리단길', lat: 37.5305, lon: 126.9690, kind: 'recent', year: 2022, how: 'pt', note: '3년간 임대료·권리금 2~3배', src: 'https://v.daum.net/v/20251126181830651', dx: -72, dy: 14 },
+  { id: '연무장길', lat: 37.5420, lon: 127.0600, kind: 'recent', year: 2022, how: 'ax', note: '뚝섬 상권 2024년 3분기 임대가격지수 +4.29%', src: 'https://www.sidae.com/article/2024112716232197162', dx: 12, dy: 20 },
+  { id: '신당·약수·금호', lat: 37.5600, lon: 127.0150, kind: 'next', note: '성수·한남 옆 위성동네. 신당동 일대 유동인구 일평균 약 8만 명(2022)', src: 'https://www.careet.net/1057', dx: 14, dy: -10 },
+  { id: '성수 바깥 골목', lat: 37.5480, lon: 127.0700, kind: 'next', note: '뚝섬 소규모 상가 공실률 3.94% → 5.94%, 연무장길 밖으로 밀려날 구간(골목 미확인)', src: 'https://biz.heraldcorp.com/article/3850075', dx: 14, dy: -6 },
+  { id: '삼각지·남영', lat: 37.5400, lon: 126.9725, kind: 'next', note: '용리단길 임대료 2~3배 이후 밀려날 구간(골목 미확인)', src: 'https://v.daum.net/v/20251126181830651', dx: -98, dy: -8 },
+];
+const FLOWS = [
+  ['홍대', '상수동'], ['홍대', '연남동'], ['상수동', '망원동'], ['이태원', '경리단길'],
+  ['성수동', '연무장길'], ['연무장길', '성수 바깥 골목', 'next'], ['성수동', '신당·약수·금호', 'next'], ['용리단길', '삼각지·남영', 'next'],
+];
+const REGIONS = [
+  { name: '홍대권', lat: 37.5545, lon: 126.919, r: 62 }, { name: '이태원권', lat: 37.5365, lon: 126.990, r: 50 },
+  { name: '성수권', lat: 37.5450, lon: 127.060, r: 58 }, { name: '도심권', lat: 37.5700, lon: 126.990, r: 52 },
+];
+// 한강 근사선 (서→동)
+const RIVER = [[37.5585,126.885],[37.5490,126.905],[37.5395,126.925],[37.5320,126.945],[37.5235,126.965],[37.5165,126.985],[37.5150,127.000],
+  [37.5235,127.020],[37.5320,127.035],[37.5355,127.048],[37.5310,127.065],[37.5245,127.080],[37.5215,127.095],[37.5270,127.110],[37.5390,127.120]];
+
+const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); parent && parent.appendChild(n); return n; };
+const color = k => ({ past: 'var(--past)', recent: 'var(--hot)', next: 'var(--accent)', origin: 'var(--fg)' })[k];
+const byId = Object.fromEntries(PLACES.map(p => [p.id, p]));
+
+function drawMap() {
+  const svg = document.getElementById('map');
+  const defs = el('defs', {}, svg);
+  for (const [id, c] of [['ah', 'var(--muted)'], ['ahn', 'var(--accent)']]) {
+    const m = el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, defs);
+    el('path', { d: 'M0 0 L10 5 L0 10z', fill: c }, m);
+  }
+  const pts = RIVER.map(([a, b]) => px(a, b));
+  el('path', { d: 'M' + pts.map(p => p.join(' ')).join(' L'), fill: 'none', stroke: 'var(--river)', 'stroke-width': 26, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+  const [rx, ry] = px(37.5205, 126.955);
+  el('text', { x: rx, y: ry + 34, 'font-size': 13, fill: 'var(--muted)', 'font-family': 'var(--mono)', 'letter-spacing': 3 }, svg).textContent = '한강';
+  for (const r of REGIONS) {
+    const [x, y] = px(r.lat, r.lon);
+    el('circle', { cx: x, cy: y, r: r.r, fill: 'none', stroke: 'var(--line)', 'stroke-width': 1.5, 'stroke-dasharray': '4 4' }, svg);
+    el('text', { x, y: y - r.r - 6, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--muted)', 'font-family': 'var(--mono)' }, svg).textContent = r.name;
+  }
+  const flowG = el('g', {}, svg);
+  for (const [a, b, k] of FLOWS) {
+    const [x1, y1] = px(byId[a].lat, byId[a].lon), [x2, y2] = px(byId[b].lat, byId[b].lon);
+    const len = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+    const mx = (x1 + x2) / 2 - uy * len * 0.18, my = (y1 + y2) / 2 + ux * len * 0.18;
+    el('path', { d: `M${x1 + ux * 9} ${y1 + uy * 9} Q${mx} ${my} ${x2 - ux * 11} ${y2 - uy * 11}`, fill: 'none',
+      stroke: k ? 'var(--accent)' : 'var(--muted)', 'stroke-width': 1.8, 'stroke-dasharray': k ? '5 4' : '', 'marker-end': `url(#${k ? 'ahn' : 'ah'})`,
+      'data-k': k ? 'next' : (byId[b].kind) }, flowG);
+  }
+  for (const p of PLACES) {
+    const [x, y] = px(p.lat, p.lon);
+    const g = el('g', { 'data-k': p.kind, tabindex: p.kind === 'origin' ? -1 : 0, role: p.kind === 'origin' ? 'presentation' : 'button', style: 'cursor:pointer' }, svg);
+    if (p.kind === 'next') el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2, class: 'pulse' }, g);
+    if (p.how === 'pt') el('rect', { x: x - 7, y: y - 7, width: 14, height: 14, transform: `rotate(45 ${x} ${y})`, fill: color(p.kind), stroke: 'var(--card)', 'stroke-width': 2 }, g);
+    else el('circle', { cx: x, cy: y, r: p.kind === 'origin' ? 5 : 8, fill: p.kind === 'next' ? 'var(--card)' : color(p.kind), stroke: p.kind === 'next' ? 'var(--accent)' : 'var(--card)', 'stroke-width': p.kind === 'next' ? 3 : 2 }, g);
+    const t = el('text', { x: x + (p.dx ?? 10), y: y + (p.dy ?? -8), 'font-size': p.kind === 'origin' ? 12 : 14, 'font-weight': p.kind === 'origin' ? 400 : 600,
+      fill: p.kind === 'origin' ? 'var(--muted)' : 'var(--fg)', 'font-family': 'var(--body)', 'paint-order': 'stroke', stroke: 'var(--card)', 'stroke-width': 4 }, g);
+    t.textContent = p.id + (p.year ? ` ${String(p.year).slice(2)}'` : '');
+    if (p.kind !== 'origin') {
+      const show = () => showInfo(p);
+      g.addEventListener('click', show); g.addEventListener('mouseenter', show);
+      g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(); } });
+    }
+  }
+}
+
+function showInfo(p) {
+  const label = { past: `${p.year}년에 뜬 곳`, recent: `${p.year}년에 뜬 곳`, next: '다음 후보' }[p.kind];
+  const how = p.how === 'pt' ? '점 발생' : '축 이동';
+  const box = document.getElementById('info');
+  box.innerHTML = '';
+  const b = document.createElement('b'); b.textContent = p.id;
+  const span = document.createElement('span'); span.textContent = ` · ${label} · ${how} — ${p.note} `;
+  const a = document.createElement('a'); a.href = p.src; a.textContent = '출처'; a.target = '_blank'; a.rel = 'noopener';
+  box.append(b, span, a);
+}
+
+function filterMap(f) {
+  document.querySelectorAll('.filters button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+  document.querySelectorAll('#map [data-k]').forEach(n => {
+    const k = n.dataset.k, on = f === 'all' || k === f || k === 'origin';
+    n.style.opacity = on ? 1 : 0.12;
+  });
+}
+
+function drawTimeline() {
+  const svg = document.getElementById('timeline');
+  const y0 = 2013, y1 = 2027, X = y => 40 + (y - y0) / (y1 - y0) * 920, base = 150;
+  el('line', { x1: 40, x2: 960, y1: base, y2: base, stroke: 'var(--line)', 'stroke-width': 2 }, svg);
+  for (let y = 2014; y <= 2026; y += 2) {
+    el('line', { x1: X(y), x2: X(y), y1: base - 5, y2: base + 5, stroke: 'var(--muted)' }, svg);
+    el('text', { x: X(y), y: base + 26, 'text-anchor': 'middle', 'font-size': 13, fill: 'var(--muted)', 'font-family': 'var(--mono)' }, svg).textContent = y;
+  }
+  const groups = {};
+  PLACES.filter(p => p.year).forEach(p => (groups[p.year] ??= []).push(p));
+  for (const [year, list] of Object.entries(groups)) {
+    list.forEach((p, i) => {
+      const x = X(+year), y = base - 30 - i * 26;
+      el('line', { x1: x, x2: x, y1: base, y2: y, stroke: 'var(--line)' }, svg);
+      if (p.how === 'pt') el('rect', { x: x - 6, y: y - 6, width: 12, height: 12, transform: `rotate(45 ${x} ${y})`, fill: color(p.kind) }, svg);
+      else el('circle', { cx: x, cy: y, r: 6, fill: color(p.kind) }, svg);
+      el('text', { x: x + 12, y: y + 5, 'font-size': 13, fill: 'var(--fg)', 'font-family': 'var(--body)' }, svg).textContent = p.id;
+    });
+  }
+  const xn = X(2026);
+  el('rect', { x: X(2025.3), y: 30, width: X(2026.8) - X(2025.3), height: base - 30, fill: 'var(--accent)', opacity: 0.1, rx: 6 }, svg);
+  el('text', { x: xn, y: 52, 'text-anchor': 'middle', 'font-size': 13, fill: 'var(--accent)', 'font-weight': 600, 'font-family': 'var(--body)' }, svg).textContent = '다음 후보';
+  el('text', { x: xn, y: 74, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--fg)', 'font-family': 'var(--body)' }, svg).textContent = '신당·약수·금호';
+  el('text', { x: xn, y: 94, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--fg)', 'font-family': 'var(--body)' }, svg).textContent = '성수 바깥 골목';
+  el('text', { x: xn, y: 114, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--fg)', 'font-family': 'var(--body)' }, svg).textContent = '삼각지·남영';
+  el('text', { x: 40, y: 230, 'font-size': 12, fill: 'var(--muted)', 'font-family': 'var(--body)' }, svg).textContent = '● 축 이동  ◆ 점 발생  ·  회색 2014~2017년, 빨강 2022년';
+}
+
+drawMap(); drawTimeline();
+document.querySelectorAll('.filters button').forEach(b => b.addEventListener('click', () => filterMap(b.dataset.f)));
+</script>
